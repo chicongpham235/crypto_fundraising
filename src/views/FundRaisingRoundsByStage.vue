@@ -95,6 +95,66 @@ export default {
       return {
         chart: {
           backgroundColor: "#2e2e33",
+          events: {
+            load: function () {
+              const legend = this.legend,
+                boxWrapper = legend.chart.renderer.boxWrapper;
+              const points = this.series[0]?.points;
+              points?.forEach((point) => {
+                ["label", "symbol"].forEach((prop) => {
+                  let isPoint = point instanceof highcharts.Point,
+                    activeClass =
+                      "highcharts-legend-" +
+                      (isPoint ? "point" : "series") +
+                      "-active";
+                  point.legendItem[prop]
+                    .on("mouseover", function () {
+                      this.style.fontWeight = "bold";
+                      if (point.visible) {
+                        points.forEach(function (inactiveItem) {
+                          if (point !== inactiveItem) {
+                            inactiveItem.setState("inactive", !isPoint);
+                          }
+                        });
+                        boxWrapper.addClass(activeClass);
+                        let text = `
+                    <div class="text-center col-span-12 font-bold text-6xl">${point.y}</div>
+                    <div class="text-center font-medium text-3xl" style="color: ${point.color}">${point.name}</div>
+                    `;
+                        vm.highchartTemp?.highChart?.setTitle({
+                          text: text,
+                        });
+                      }
+                      if (!point.visible) {
+                        let text = `
+                    <div class="text-center col-span-12 font-bold text-6xl">0</div>
+                    <div class="text-center font-medium text-3xl">${point.name}</div>
+                    `;
+                        vm.highchartTemp?.highChart?.setTitle({
+                          text: text,
+                        });
+                      }
+                      point.setState("hover");
+                    })
+                    .on("mouseout", function () {
+                      this.style.fontWeight = "normal";
+                      points.forEach(function (inactiveItem) {
+                        if (point !== inactiveItem) {
+                          inactiveItem.setState("", !isPoint);
+                        }
+                      });
+                      let text = `
+                    <div class="text-center col-span-12 font-bold text-6xl">${point.total}</div>
+                    <div class="text-center font-medium text-3xl">Total</div>
+                    `;
+                      vm.highchartTemp?.highChart?.setTitle({
+                        text: text,
+                      });
+                    });
+                });
+              });
+            },
+          },
         },
         title: {
           useHTML: true,
@@ -140,10 +200,6 @@ export default {
           enabled: true,
           useHTML: true,
           borderWidth: 0,
-          itemHoverStyle: {
-            color: "rgb(148 163 184)",
-            fontWeight: "bold",
-          },
           verticalAlign: this.verticalAlign,
           layout: "vertical",
           align: "left",
@@ -328,14 +384,21 @@ export default {
         }
         return sum;
       };
-      round = round.sort((a, b) => b.count - a.count);
-      round.push({
-        name: "Others",
-        count: roundArr.length - othersRoundCount(),
-      });
       let dataSeries = [];
+      let i = 0;
       round.forEach((element) => {
-        dataSeries.push([element.name, element.count]);
+        dataSeries.push({
+          name: element.name,
+          y: element.count,
+          color: pieColors[i],
+        });
+        i++;
+      });
+      dataSeries = dataSeries.sort((a, b) => b.y - a.y);
+      dataSeries.push({
+        name: "Others",
+        y: roundArr.length - othersRoundCount(),
+        color: pieColors[10],
       });
       this.seriesOptions = [
         {
