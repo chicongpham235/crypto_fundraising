@@ -42,7 +42,7 @@ var pieColors = [
   "#aecbfa",
   "rgb(234 179 8)",
   "orange ",
-  "rgb(229 231 235)",
+  "rgb(209 213 219)",
 ];
 export default {
   components: {
