@@ -374,7 +374,7 @@ export default {
         let time = null;
         if (vm.time == "monthly") {
           time = new Date(
-            Date.UTC(timestamp.year(), timestamp.month(), 1, 7, 0, 0)
+            Date.UTC(timestamp.year(), timestamp.month(), 1, 0, 0, 0)
           ).getTime();
         }
         if (vm.time == "quarterly") {
